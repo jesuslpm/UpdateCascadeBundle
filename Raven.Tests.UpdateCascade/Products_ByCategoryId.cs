@@ -19,6 +19,5 @@ namespace Raven.Tests.UpdateCascade
 							  };
 
 		}
-
 	}
 }

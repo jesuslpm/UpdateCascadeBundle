@@ -5,7 +5,7 @@
 ## Features:
 * Works on RavenDb 1.2
 * Updates referencing entities in the background
-* Resilient to server restarts and crahses. The bundles restarts all pending cascade operations upon server start.
+* Resilient to server restarts and crahses. The bundle restarts all pending cascade operations upon server start.
 * Participates in the shutdown process, canceling all in progress cascade operations.
 * Trackable: each update cascade operation has a corresponding document in Raven/UpdateCascadeOperations
 * Debuggable: you can configure log NLog.config
@@ -39,14 +39,11 @@ A.
 
 Q. How do you update referencing entities?
 A.
-   I span a new update cascade operation in a put trigger. The update cascade operation runs in a separate
-   thread and in another transacion. I scan the specified index searching for referencing entities and update
-   them.
+   I span a new update cascade operation in a put trigger. The update cascade operation runs in a separate thread and in another transacion. I scan the specified index searching for referencing entities and update them.
 
 Q. How do you handle index staleness?
 A. 
-	Waiting for the index no to be stale as of last document Etag, then scaning all documents updated/inserted
-	after that Etag.
+	Waiting for the index no to be stale as of last document Etag, then scaning all documents updated/inserted after that Etag.
 
 Q. What happens when I update an entity that has an in progress cascade operation?
 A.
