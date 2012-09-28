@@ -38,6 +38,7 @@ namespace Raven.Bundles.UpdateCascade
 			var entityName = metadata.Value<string>(Constants.RavenEntityName);
 			UpdateCascadeSetting setting = null;
 			string settingId = UpdateCascadeSetting.GetId(entityName);
+			Services.SettingsCache.EnsureInitialized(this.Database);
 			Services.SettingsCache.TryGetValue(settingId, out setting);
 			return setting;
 		}

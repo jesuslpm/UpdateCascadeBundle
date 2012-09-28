@@ -10,16 +10,34 @@ using System.Threading.Tasks;
 
 namespace Raven.Tests.UpdateCascade
 {
-	public class UpdateCascadeTest : InMemoryTest
+
+	public class UpdateCascadeTest
 	{
-		public UpdateCascadeTest()
+		[Fact]
+		public void ShouldWorkInMemory()
+		{
+			var test = new ConfigurableUpdateCascadeTest(true);
+			test.UpdateCascadeShouldWork();
+		}
+
+		[Fact]
+		public void ShouldWorkInEsent()
+		{
+			var test = new ConfigurableUpdateCascadeTest(false);
+			test.UpdateCascadeShouldWork();
+		}
+
+	}
+
+	public class ConfigurableUpdateCascadeTest : RavenStoreTest
+	{
+		public ConfigurableUpdateCascadeTest(bool runInMemory): base(runInMemory)
 		{
 			new Products_ByCategoryId().Execute(this.Store);
 			FillStore();
 			SetUpUpdateCascadeSettings();
 		}
 
-		[Fact]
 		public void UpdateCascadeShouldWork()
 		{
 			using (var session = this.Store.OpenSession())
@@ -36,14 +54,14 @@ namespace Raven.Tests.UpdateCascade
 					operation = WaitOperationToComplete(category);
 				});
 
-				if (!waitTaks.Wait(TimeSpan.FromSeconds(5)))
+				if (!waitTaks.Wait(TimeSpan.FromSeconds(1200)))
 				{
 					throw new TimeoutException("The cascade operation did not completed within the allotted time");
 				}
 
 
 
-				Assert.Equal(UpdateCascadeOperation.GetId(category.Id, category.Etag), operation.Id);
+				Assert.Equal(UpdateCascadeOperation.GetId(category.Id, category.Etag.Value), operation.Id);
 				Assert.Equal(true, operation.IsCompleted);
 				Assert.Equal(1, operation.CollectionOperations.Count);
 				Assert.Equal(category.Etag, operation.ReferencedDocEtag);
@@ -58,20 +76,7 @@ namespace Raven.Tests.UpdateCascade
 					var product = session.Load<Product>(productId);
 					Assert.Equal(category.Name, product.Category.Name);
 					Assert.Equal(category.Etag, product.Category.Etag);
-
 				}
-
-				var products = session.Advanced.LoadStartingWith<Product>("Categories/1/Products/");
-
-
-				//Assert.Equal(products.Select(p => p.Category.Name), Enumerable.Repeat(category.Name, products.Count()));
-				//Assert.Equal(products.Select(p => p.Category.Etag), Enumerable.Repeat(category.Etag, products.Count()));
-			}
-
-			using (var session = Store.OpenSession())
-			{
-
-				var products = session.Advanced.LoadStartingWith<Product>("Categories/1/Products/");
 			}
 		}
 
@@ -81,7 +86,7 @@ namespace Raven.Tests.UpdateCascade
 			{
 				using (var session = this.Store.OpenSession())
 				{
-					var operation = session.Load<UpdateCascadeOperation>(UpdateCascadeOperation.GetId(category.Id, category.Etag));
+					var operation = session.Load<UpdateCascadeOperation>(UpdateCascadeOperation.GetId(category.Id, category.Etag.Value));
 					if (operation != null && operation.IsCompleted)
 					{
 						return operation;
@@ -145,7 +150,7 @@ namespace Raven.Tests.UpdateCascade
 						Description = "Category " + categoryNumber.ToString() + " description"
 					};
 
-					session.Store(category, category.Etag);
+					session.Store(category);
 					categories.Add(category);
 				}
 

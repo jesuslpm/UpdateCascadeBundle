@@ -16,7 +16,7 @@ using NLog;
 
 namespace Raven.Bundles.UpdateCascade
 {
-	internal static class DocumentDatabaseExtensions
+	public static class DocumentDatabaseExtensions
 	{
 
 		private static readonly Logger log = LogManager.GetCurrentClassLogger();
@@ -247,27 +247,33 @@ namespace Raven.Bundles.UpdateCascade
 			if (idPrefix == null)
 				throw new ArgumentNullException("idPrefix");
 			idPrefix = idPrefix.Trim();
-			IEnumerable<JsonDocument> docs = null;
+			var docs = new List<JsonDocument>(pageSize);
 
 			db.TransactionalStorage.Batch(actions =>
 			{
-				var documents = actions.Documents.GetDocumentsWithIdStartingWith(idPrefix, start, pageSize);
+				
 				var retriever = new DocumentRetriever(actions, db.ReadTriggers);
-				docs = RetrieveDocuments(retriever, documents);
+				foreach (var doc in actions.Documents.GetDocumentsWithIdStartingWith(idPrefix, start, pageSize))
+				{
+					var document = retriever.ExecuteReadTriggers(doc, null, ReadOperation.Load);
+					if (document == null)
+						continue;
+					docs.Add(document);
+				}
+				
 			});
-
 			return docs;
 			
 		}
 
-		private static IEnumerable<JsonDocument> RetrieveDocuments(DocumentRetriever retriever, IEnumerable<JsonDocument> documents)
-		{
-			foreach (var doc in documents)
-			{
-				DocumentRetriever.EnsureIdInMetadata(doc);
-				var document = retriever.ExecuteReadTriggers(doc, null, ReadOperation.Load);
-				if (document != null) yield return doc;				
-			}
-		}
+		//private static IEnumerable<JsonDocument> RetrieveDocuments(DocumentRetriever retriever, IEnumerable<JsonDocument> documents)
+		//{
+		//    foreach (var doc in documents)
+		//    {
+		//        DocumentRetriever.EnsureIdInMetadata(doc);
+		//        var document = retriever.ExecuteReadTriggers(doc, null, ReadOperation.Load);
+		//        if (document != null) yield return doc;				
+		//    }
+		//}
 	}
 }

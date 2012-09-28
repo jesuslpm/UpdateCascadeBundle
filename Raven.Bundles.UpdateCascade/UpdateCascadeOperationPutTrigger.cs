@@ -35,6 +35,7 @@ namespace Raven.Bundles.UpdateCascade
 
 			if (referencedDoc == null) return;
 
+			Services.EnsureInitialized(this.Database);
 			Services.RunningOperationsCoordinator.TryStartOperation(operation, referencedDoc); 
 
 		}

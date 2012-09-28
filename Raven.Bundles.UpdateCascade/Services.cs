@@ -13,9 +13,26 @@ namespace Raven.Bundles.UpdateCascade
 
 		public static UpdateCascadeSettingsCache SettingsCache { get; private set; }
 
-		public static void Initialize(DocumentDatabase db)
+		private static volatile bool isInitialized;
+
+		private static object initializeLockObject = new object();
+
+		public static void EnsureInitialized(DocumentDatabase db)
 		{
-			
+			if (!isInitialized)
+			{
+				lock (initializeLockObject)
+				{
+					if (!isInitialized)
+					{
+						Initialize(db);
+					}
+				}
+			}
+		}
+
+		private static void Initialize(DocumentDatabase db)
+		{			
 			SettingsCache = new UpdateCascadeSettingsCache();
 			SettingsCache.EnsureInitialized(db);
 			RunningOperationsCoordinator = new UpdateCascadeRunningOperationsCoordinator(db);

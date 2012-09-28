@@ -163,7 +163,7 @@ namespace Raven.Bundles.UpdateCascade
 					var query = new IndexQuery
 					{
 						CutoffEtag = lastEtag,
-						Query = string.Format("{0}:{1} AND {2}:{3}* TO {4}{5}", rc.ReferencedIdPropertyNameInIndex, RavenQuery.Escape(referencedDoc.Key),
+						Query = string.Format("{0}:{1} AND {2}:{3}NULL TO {4}{5}", rc.ReferencedIdPropertyNameInIndex, RavenQuery.Escape(referencedDoc.Key),
 							rc.ReferencedEtagPropertyNameInIndex, "{", RavenQuery.Escape(Convert.ToString(referencedDoc.Etag, CultureInfo.InvariantCulture)), "}")
 
 					};
@@ -228,7 +228,7 @@ namespace Raven.Bundles.UpdateCascade
 			bool shouldUpdate = false;
 			foreach (var reference in denormalizedReferences)
 			{
-				Guid? referencedEtag = reference.Value<Guid?>("ETag");
+				Guid? referencedEtag = reference.Value<Guid?>("Etag");
 				var referencedDocId = reference.Value<string>("Id");
 
 				if (referencedDocId == referencedDoc.Key && (referencedEtag == null || 
@@ -239,7 +239,7 @@ namespace Raven.Bundles.UpdateCascade
 					{
 						reference[property] = referencedDoc.DataAsJson[property].CloneToken();
 					}
-					reference["ETag"] = RavenJToken.FromObject(referencedDoc.Etag.Value);
+					reference["Etag"] = RavenJToken.FromObject(referencedDoc.Etag.Value);
 				}
 			}
 			if (shouldUpdate)

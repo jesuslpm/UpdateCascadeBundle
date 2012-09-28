@@ -16,7 +16,8 @@ namespace Raven.Bundles.UpdateCascade
 		{
 			base.AfterCommit(key, document, metadata, etag);
 			var entityName = metadata.Value<string>(Constants.RavenEntityName);
-			if (entityName != UpdateCascadeSetting.EntityName) return;			
+			if (entityName != UpdateCascadeSetting.EntityName) return;
+			Services.EnsureInitialized(this.Database);
 			Services.SettingsCache.InvalidateCacheItem(key);
 		}
 	}
@@ -29,6 +30,7 @@ namespace Raven.Bundles.UpdateCascade
 			base.AfterCommit(key);
 			if (key.StartsWith(UpdateCascadeSetting.IdPrefix))
 			{
+				Services.EnsureInitialized(this.Database);
 				Services.SettingsCache.InvalidateCacheItem(key);
 			}
 		}

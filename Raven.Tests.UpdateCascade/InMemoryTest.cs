@@ -7,15 +7,17 @@ using Raven.Client.Document;
 
 namespace Raven.Tests.UpdateCascade
 {
-	public class InMemoryTest : IDisposable
+	public class RavenStoreTest : IDisposable
 	{
-		protected readonly DocumentStore Store = new EmbeddableDocumentStore();
-		//{ 
-		//    RunInMemory = true 
-		//};
+		protected readonly DocumentStore Store;
+		
 
-		public InMemoryTest()
+		public RavenStoreTest(bool runInMemory)
 		{
+			Store = new EmbeddableDocumentStore
+			{
+				RunInMemory = runInMemory
+			};
 			this.Store.Initialize();
 		}
 

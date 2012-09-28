@@ -113,7 +113,6 @@
   <ItemGroup>
     <Compile Include="DeserializationTest.cs" />
     <Compile Include="InMemoryTest.cs" />
-    <Compile Include="LoadStartingWithTest.cs" />
     <Compile Include="Models.cs" />
     <Compile Include="Products_ByCategoryId.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
