@@ -10,6 +10,9 @@
 * Trackable: each update cascade operation has a corresponding document in Raven/UpdateCascadeOperations
 * Debuggable: you can configure log NLog.config
 
+## License
+
+MIT License
 
 ## Guidelines
 
