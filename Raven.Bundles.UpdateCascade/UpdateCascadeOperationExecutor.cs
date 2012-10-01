@@ -93,6 +93,7 @@ namespace Raven.Bundles.UpdateCascade
 		private void Execute()
 		{
 			this.operation.Status = UpdateCascadeOperationStatus.Executing;
+			operation.StartedDate = DateTime.UtcNow;
 			operationRepository = new Repository<UpdateCascadeOperation>(db);
 			var completedReferencingEntityNames = this.operation.CollectionOperations
 				.Where( x => x.IsCompleted)
@@ -104,7 +105,7 @@ namespace Raven.Bundles.UpdateCascade
 
 			try
 			{
-				log.Trace("Update cascade operation {0} started", operation.Id);
+				log.Trace("Update cascade operation {0} started", operation.Id);				
 				foreach (var referencingCollectionSetting in notCompletedReferencingCollections)
 				{
 					var collectionOperation = this.operation.CollectionOperations.FirstOrDefault(co => co.ReferencingEntityName == referencingCollectionSetting.ReferencingEntityName);

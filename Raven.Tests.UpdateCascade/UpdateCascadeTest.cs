@@ -42,6 +42,7 @@ namespace Raven.Tests.UpdateCascade
 		{
 			using (var session = this.Store.OpenSession())
 			{
+				var startedTime = DateTime.UtcNow;
 				var category = session.Load<Category>("Categories/1");
 				var newName = category.Name + " new Name";
 				category.Name = newName;
@@ -54,7 +55,7 @@ namespace Raven.Tests.UpdateCascade
 					operation = WaitOperationToComplete(category);
 				});
 
-				if (!waitTaks.Wait(TimeSpan.FromSeconds(1200)))
+				if (!waitTaks.Wait(TimeSpan.FromSeconds(20)))
 				{
 					throw new TimeoutException("The cascade operation did not completed within the allotted time");
 				}
@@ -68,7 +69,9 @@ namespace Raven.Tests.UpdateCascade
 				Assert.Equal(category.Id, operation.ReferencedDocId);
 				Assert.Equal(UpdateCascadeOperationStatus.CompletedSuccessfully, operation.Status);
 				Assert.Equal(UpdateCascadeSetting.GetId("Categories"), operation.UpdateCascadeSettingId);
-				Assert.Equal(10, operation.UpdatedDocumentCount);
+				Assert.Equal(productsPerCategory, operation.UpdatedDocumentCount);
+				Assert.InRange(operation.StartedDate.Value, startedTime, DateTime.UtcNow);
+				Assert.InRange(operation.CompletedDate.Value, startedTime, DateTime.UtcNow);
 
 				for (int productNumber = 1; productNumber <= productsPerCategory; productNumber++)
 				{
