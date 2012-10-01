@@ -1,12 +1,12 @@
 # Update Cascade Bundle 
 
-## Keep your RavenDB denormalized references up to date automatically
+**Keep your RavenDB denormalized references up to date automatically**
 
 ## Features:
 * Works on RavenDb 1.2
 * Updates referencing entities in the background
 * Resilient to server restarts and crashes. The bundle restarts all pending cascade operations upon server start.
-* Participates in the shutdown process, canceling all in progress cascade operations.
+* Participates in the shut down process, canceling all in progress cascade operations.
 * Trackable: each update cascade operation has a corresponding document in Raven/UpdateCascadeOperations
 * Debuggable: you can configure log NLog.config
 
@@ -44,6 +44,14 @@ You need to store a UpdateCascadeSetting object with the details.
 ***
 
 **Q.**  
+What is ReferencingPropertyPath?
+
+**A.** 
+Is a dot separated string that points to the property that holds the denormalized reference. 
+That property can be a single object or can be an enumerable of denormalized reference.
+***
+
+**Q.**  
 Is an update cascade operation started each time I update a referenced entity?
 
 **A.**  
@@ -52,11 +60,11 @@ excluding the Etag.
 ***
 
 **Q.**  
-How do you update referencing entities?
+How referencing entities are updated?
 
 **A.**  
-I span a new update cascade operation in a put trigger. The update cascade operation runs in a separate thread and
-in another transacion. I scan the specified index searching for referencing entities and update them.
+A new update cascade operation is started in a put trigger. The update cascade operation runs in a separate thread and
+in another transaction. The specified index is scaned searching for referencing entities and update them if needed.
 ***
 
 **Q.**  
@@ -74,13 +82,13 @@ The in progress cascade operation is canceled, and a new cascade operation is st
 ***
 
 **Q.**  
-What happens then the server shutsdown or crashes in the middle of a cascade operation?
+What happens when the server shuts down or crashes in the middle of a cascade operation?
 
 **A.**  
-When the server shutsdown all in progress cascade operations are canceled.
-When the server crashes I can do nothing, but there is no problem at all.
+When the server shuts down all in progress cascade operations are canceled.
+When the server crashes nothing can be done, but there is no problem at all.
 When the server restarts all not completed cascade operations are restarted. 
-The operations are restarted at the point they were.
+The operations are restarted at the point they were when the server shutted down or crashed.
 ***
 
 **Q.**  
