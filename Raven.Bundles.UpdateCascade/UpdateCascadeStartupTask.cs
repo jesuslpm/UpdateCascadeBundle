@@ -16,17 +16,19 @@ namespace Raven.Bundles.UpdateCascade
 
 		private DocumentDatabase db;
 
+		Services services;
+
 		#region IStartupTask Members
 
 		public void Execute(Database.DocumentDatabase database)
 		{
 			try
 			{
-				Services.IsShutDownInProgress = false;
+				services = Services.GetServices(database);
+				services.IsShutDownInProgress = false;
 				db = database;
-				this.db.PutIndex(UpdateCascadeOperation.ByStatusIndexName, UpdateCascadeOperation.GetByStatusIndexDefinition());
-				Services.EnsureInitialized(database);				
-				Task.Factory.StartNew(Services.RunningOperationsCoordinator.RestartNotCompletedOperations).ContinueWith(t =>
+				this.db.PutIndex(UpdateCascadeOperation.ByStatusIndexName, UpdateCascadeOperation.GetByStatusIndexDefinition());			
+				Task.Factory.StartNew(services.RunningOperationsCoordinator.RestartNotCompletedOperations).ContinueWith(t =>
 				{
 					if (t.Status == TaskStatus.Faulted && t.Exception != null)
 					{
@@ -52,10 +54,10 @@ namespace Raven.Bundles.UpdateCascade
 			if (!isDisposed)
 			{
 				isDisposed = true;
-				Services.IsShutDownInProgress = true;
-				if (Services.RunningOperationsCoordinator != null)
+				services.IsShutDownInProgress = true;
+				if (services.RunningOperationsCoordinator != null)
 				{
-					Services.RunningOperationsCoordinator.CancelAllOperations();
+					services.RunningOperationsCoordinator.CancelAllOperations();
 				}
 			}
 		}

@@ -13,11 +13,14 @@ namespace Raven.Bundles.UpdateCascade
 	{
 		private Repository<UpdateCascadeOperation> operationRepository;
 		private ThreadLocal<JsonDocument> originalDocument = new ThreadLocal<JsonDocument>();
+		private Services services;
+
 
 		public override void Initialize()
 		{
 			base.Initialize();
 			operationRepository = new Repository<UpdateCascadeOperation>(this.Database);
+			services = Services.GetServices(this.Database);
 		}
 
 		public override void OnPut(string key, RavenJObject document, RavenJObject metadata, TransactionInformation transactionInformation)
@@ -38,8 +41,8 @@ namespace Raven.Bundles.UpdateCascade
 			var entityName = metadata.Value<string>(Constants.RavenEntityName);
 			UpdateCascadeSetting setting = null;
 			string settingId = UpdateCascadeSetting.GetId(entityName);
-			Services.SettingsCache.EnsureInitialized(this.Database);
-			Services.SettingsCache.TryGetValue(settingId, out setting);
+			services.SettingsCache.EnsureInitialized(this.Database);
+			services.SettingsCache.TryGetValue(settingId, out setting);
 			return setting;
 		}
 

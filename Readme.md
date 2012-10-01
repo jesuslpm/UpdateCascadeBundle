@@ -3,7 +3,7 @@
 **Keep your RavenDB denormalized references up to date automatically**
 
 ## Features:
-* Works on RavenDb 1.2
+* Works on RavenDB 1.2
 * Updates referencing entities in the background
 * Resilient to server restarts and crashes. The bundle restarts all pending cascade operations upon server start.
 * Participates in the shut down process, canceling all in progress cascade operations.
@@ -16,11 +16,11 @@ MIT License
 
 ## Guidelines
 
-### Do not use this bundle when:
+**Do not use this bundle when**  
 * The referenced entity is updated often.
 * There are many referencing entities.
 
-### You may use this bundle when:
+**You may use this bundle when**  
 * The referenced entity is updated rarely.
 * There are not too many referencing entities.
 
@@ -32,7 +32,7 @@ MIT License
 * Multimap indexes
 
 
-## FAQ's
+## FAQs
 
 **Q.**  
 How do I configure a denormalized reference to be updated automatically when the referenced entity changes?
@@ -46,8 +46,8 @@ You need to store a UpdateCascadeSetting object with the details.
 **Q.**  
 What is ReferencingPropertyPath?
 
-**A.** 
-Is a dot separated string that points to the property that holds the denormalized reference. 
+**A.**  
+It is a dot separated string that points to the property that holds the denormalized reference or references. 
 That property can be a single object or can be an enumerable of denormalized reference.
 ***
 

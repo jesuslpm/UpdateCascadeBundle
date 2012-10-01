@@ -3,21 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Raven.Database;
+using System.Collections.Concurrent;
 
 namespace Raven.Bundles.UpdateCascade
 {
-	internal static class Services
+	internal class Services
 	{
 
-		public static UpdateCascadeRunningOperationsCoordinator RunningOperationsCoordinator { get; private set; }
+		private static ConcurrentDictionary<DocumentDatabase, Services> servicesEntries = new ConcurrentDictionary<DocumentDatabase, Services>();
 
-		public static UpdateCascadeSettingsCache SettingsCache { get; private set; }
+		public static Services GetServices(DocumentDatabase db)
+		{
+			var services = servicesEntries.GetOrAdd(db, x => new Services(x));
+			services.EnsureInitialized();
+			return services;
+		}
 
-		private static volatile bool isInitialized;
+		public UpdateCascadeRunningOperationsCoordinator RunningOperationsCoordinator { get; private set; }
 
-		private static object initializeLockObject = new object();
+		public UpdateCascadeSettingsCache SettingsCache { get; private set; }
 
-		public static void EnsureInitialized(DocumentDatabase db)
+		private volatile bool isInitialized;
+
+		private object initializeLockObject = new object();
+
+		private readonly DocumentDatabase db;
+
+		private Services(DocumentDatabase db)
+		{
+			this.db = db;
+		}
+
+		private void EnsureInitialized()
 		{
 			if (!isInitialized)
 			{
@@ -25,19 +42,19 @@ namespace Raven.Bundles.UpdateCascade
 				{
 					if (!isInitialized)
 					{
-						Initialize(db);
+						Initialize();
 					}
 				}
 			}
 		}
 
-		private static void Initialize(DocumentDatabase db)
+		private void Initialize()
 		{			
 			SettingsCache = new UpdateCascadeSettingsCache();
 			SettingsCache.EnsureInitialized(db);
 			RunningOperationsCoordinator = new UpdateCascadeRunningOperationsCoordinator(db);
 		}
 
-		public static bool IsShutDownInProgress { get; set; }		
+		public bool IsShutDownInProgress { get; set; }	
 	}
 }

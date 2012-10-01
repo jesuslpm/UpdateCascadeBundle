@@ -16,9 +16,12 @@ namespace Raven.Bundles.UpdateCascade
 
 		Repository<UpdateCascadeOperation> operationRepository;
 
+		Services services;
+
 		public override void Initialize()
 		{
 			base.Initialize();
+			services = Services.GetServices(this.Database);
 			operationRepository = new Repository<UpdateCascadeOperation>(this.Database);
 		}
 
@@ -35,8 +38,10 @@ namespace Raven.Bundles.UpdateCascade
 
 			if (referencedDoc == null) return;
 
-			Services.EnsureInitialized(this.Database);
-			Services.RunningOperationsCoordinator.TryStartOperation(operation, referencedDoc); 
+			if (services.RunningOperationsCoordinator != null)
+			{
+				services.RunningOperationsCoordinator.TryStartOperation(operation, referencedDoc);
+			}
 
 		}
 	}

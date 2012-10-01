@@ -7,7 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raven.Tests.UpdateCascade",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{DE8E729F-35FB-4E0C-8D83-73A0F5DE5DF1}"
 	ProjectSection(SolutionItems) = preProject
-		Readme.txt = Readme.txt
+		License.txt = License.txt
+		Readme.md = Readme.md
 	EndProjectSection
 EndProject
 Global

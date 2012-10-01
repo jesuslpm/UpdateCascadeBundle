@@ -101,15 +101,17 @@ namespace Raven.Bundles.UpdateCascade
 
 		public bool TryStartOperation(UpdateCascadeOperation operation, JsonDocument referencedDoc)
 		{
-			if (Services.IsShutDownInProgress)
+			var services = Services.GetServices(this.db);
+
+			if (services.IsShutDownInProgress)
 			{
 				log.Warn("Tried to start operation {0} while shuting down", operation.Id);
 				return false;
 			}
 
-			RunningOperation co = null;
+			RunningOperation ro = null;
 			UpdateCascadeSetting setting;
-			if (!Services.SettingsCache.TryGetValue(operation.UpdateCascadeSettingId, out setting))
+			if (!services.SettingsCache.TryGetValue(operation.UpdateCascadeSettingId, out setting))
 			{
 				log.Error("Tried to add and run the operation {0}. But there is no corresponding setting {1}", operation.Id, operation.UpdateCascadeSettingId);
 				return false;
@@ -117,18 +119,18 @@ namespace Raven.Bundles.UpdateCascade
 			
 			lock (runningOperations)
 			{
-				if (runningOperations.TryGetValue(operation.ReferencedDocId, out co))
+				if (runningOperations.TryGetValue(operation.ReferencedDocId, out ro))
 				{
 					// the operation might be already here. This shouldn't occur
-					if (operation.Id == co.Operation.Id) 
+					if (operation.Id == ro.Operation.Id) 
 					{
 						log.Warn("Tried to start an operation that is already started. Operation Id = {0}", operation.Id);
 						return false;
 					}
 					// the operation might refer to an older entity. This is unprobable, I think
-					if (Buffers.Compare(operation.ReferencedDocEtag.ToByteArray(), co.Operation.ReferencedDocEtag.ToByteArray()) < 0) 
+					if (Buffers.Compare(operation.ReferencedDocEtag.ToByteArray(), ro.Operation.ReferencedDocEtag.ToByteArray()) < 0) 
 					{
-						log.Warn("Tried to start an operation that refers to an entity which is older than the referenced by a running operation. Older operation id: {0}, existing operation id: {1}", operation.Id, co.Operation.Id);
+						log.Warn("Tried to start an operation that refers to an entity which is older than the referenced by a running operation. Older operation id: {0}, existing operation id: {1}", operation.Id, ro.Operation.Id);
 						return false;
 					}
 
@@ -136,11 +138,11 @@ namespace Raven.Bundles.UpdateCascade
 
 					// the same referenced entity has been updated while a previous update cascade operation of that entity is in progress
 					// we need to cancel that operation and span a new one.
-					var tokenSource = co.TokenSource;
+					var tokenSource = ro.TokenSource;
 					if (tokenSource != null) tokenSource.Cancel();
 					try
 					{
-						var task = co.ExecutorTask;
+						var task = ro.ExecutorTask;
 						if (task!= null) task.Wait();
 					}
 					catch (AggregateException ex) 
@@ -159,14 +161,14 @@ namespace Raven.Bundles.UpdateCascade
 				runningOperation.ExecutorTask = runningOperation.Executor.ExecuteAsync(runningOperation.TokenSource.Token);				
 				runningOperation.ExecutorTask.ContinueWith(t =>
 				{
-					if (!Services.IsShutDownInProgress)
+					if (!services.IsShutDownInProgress)
 					{
 						lock (runningOperations)
 						{
-							RunningOperation ro;
-							if (runningOperations.TryGetValue(operation.ReferencedDocId, out ro))
+							RunningOperation rop;
+							if (runningOperations.TryGetValue(operation.ReferencedDocId, out rop))
 							{
-								if (ro.Operation.Id == operation.Id)
+								if (rop.Operation.Id == operation.Id)
 								{
 									runningOperations.Remove(operation.ReferencedDocId);
 								}

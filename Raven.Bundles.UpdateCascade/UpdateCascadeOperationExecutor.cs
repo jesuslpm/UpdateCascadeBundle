@@ -25,9 +25,12 @@ namespace Raven.Bundles.UpdateCascade
 
 		private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
+		Services services;
+
 		public UpdateCascadeOperationExecutor(DocumentDatabase db, UpdateCascadeSetting setting, UpdateCascadeOperation operation, JsonDocument referencedDoc)
 		{
 			this.db = db;
+			this.services = Services.GetServices(db);
 			this.setting = setting;
 			this.operation = operation;
 			this.referencedDoc = referencedDoc;
@@ -139,7 +142,7 @@ namespace Raven.Bundles.UpdateCascade
 			finally
 			{
 				operation.CompletedDate = DateTime.UtcNow;
-				if (! (Services.IsShutDownInProgress && operation.Status == UpdateCascadeOperationStatus.Canceled))
+				if (! (services.IsShutDownInProgress && operation.Status == UpdateCascadeOperationStatus.Canceled))
 				{
 					SaveOperationSilentlyIgnoringError();
 				}
@@ -191,7 +194,7 @@ namespace Raven.Bundles.UpdateCascade
 			finally
 			{
 				co.CompletedDate = DateTime.UtcNow;
-				if (!(Services.IsShutDownInProgress && co.Status == UpdateCascadeOperationStatus.Canceled))
+				if (!(services.IsShutDownInProgress && co.Status == UpdateCascadeOperationStatus.Canceled))
 					SaveOperationSilentlyIgnoringError(); // we want to preserve OperationCanceledException.
 			}
 		}

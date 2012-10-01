@@ -12,26 +12,40 @@ namespace Raven.Bundles.UpdateCascade
 	public class UpdateCascadeSettingPutTrigger : AbstractPutTrigger
 	{
 
+		Services services;
+
+		public override void Initialize()
+		{
+			base.Initialize();
+			services = Services.GetServices(this.Database);
+		}
+
 		public override void AfterCommit(string key, Json.Linq.RavenJObject document, Json.Linq.RavenJObject metadata, Guid etag)
 		{
 			base.AfterCommit(key, document, metadata, etag);
 			var entityName = metadata.Value<string>(Constants.RavenEntityName);
-			if (entityName != UpdateCascadeSetting.EntityName) return;
-			Services.EnsureInitialized(this.Database);
-			Services.SettingsCache.InvalidateCacheItem(key);
+			if (entityName != UpdateCascadeSetting.EntityName) return;			
+			services.SettingsCache.InvalidateCacheItem(key);
 		}
 	}
 
 	public class UpdateCascadeSettingDeleteTrigger : AbstractDeleteTrigger
 	{
+		Services services;
+
+		public override void Initialize()
+		{
+			base.Initialize();
+			services = Services.GetServices(this.Database);
+		}
+
 		public override void AfterCommit(string key)
 		{
 			
 			base.AfterCommit(key);
 			if (key.StartsWith(UpdateCascadeSetting.IdPrefix))
-			{
-				Services.EnsureInitialized(this.Database);
-				Services.SettingsCache.InvalidateCacheItem(key);
+			{				
+				services.SettingsCache.InvalidateCacheItem(key);
 			}
 		}
 	}
